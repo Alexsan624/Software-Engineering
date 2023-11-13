@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -12,6 +12,10 @@
 	  <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.19" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.19" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.19" />
+	  <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.16" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DogsApp.Infrastructure\DogsApp.Infrastructure.csproj" />
   </ItemGroup>
 

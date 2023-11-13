@@ -1,3 +1,5 @@
+using DogsApp.Core.Contracts;
+using DogsApp.Core.Services;
 using DogsApp.Infrastructure.Data;
 
 using Microsoft.AspNetCore.Identity;
@@ -29,6 +31,8 @@ namespace DogsApp
             })
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddTransient<IDogService, DogService>();
 
             var app = builder.Build();
 

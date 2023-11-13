@@ -1,4 +1,5 @@
-﻿using DogsApp.Infrastructure.Data;
+﻿using DogsApp.Core.Contracts;
+using DogsApp.Infrastructure.Data;
 using DogsApp.Infrastructure.Data.Domain;
 using DogsApp.Models;
 
@@ -10,15 +11,15 @@ namespace DogsApp.Controllers
 {
     public class DogController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        public DogController(ApplicationDbContext conetxt)
+        private readonly IDogService _dogService;
+        public DogController(IDogService dogService)
         {
-            _context = conetxt;
+            this._dogService = dogService;
         }
         // GET: DogController
         public ActionResult Index(string searchStringBreed, string searchStringName)
         {
-            List<DogAllViewModel> dogs = _context.Dogs
+            List<DogAllViewModel> dogs = _dogService.GetDogs(searchStringBreed, searchStringName)
                 .Select(dogFromDb => new DogAllViewModel
                 {
                     Id = dogFromDb.Id,
@@ -27,29 +28,14 @@ namespace DogsApp.Controllers
                     Breed = dogFromDb.Breed,
                     Picture = dogFromDb.Picture
                 }).ToList();
-            if (!String.IsNullOrEmpty(searchStringBreed) && !String.IsNullOrEmpty(searchStringName))
-            {
-                dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed) && d.Name.Contains(searchStringName)).ToList();
-            }
-            else if (!String.IsNullOrEmpty(searchStringBreed))
-            {
-                dogs = dogs.Where(d=> d.Breed.Contains(searchStringBreed)).ToList();
-            }
-            else if (!String.IsNullOrEmpty(searchStringName))
-            {
-                dogs = dogs.Where(d => d.Name.Contains(searchStringName)).ToList();
-            }
-            return View(dogs);
+
+            return this.View(dogs);
         }
 
         // GET: DogController/Details/5
         public ActionResult Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            Dog? item = _context.Dogs.Find(id);
+            Dog item = _dogService.GetDogById(id);
             if (item == null)
             {
                 return NotFound();
@@ -78,16 +64,11 @@ namespace DogsApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                Dog dogFromDb = new Dog
+                var created = _dogService.Create(bindingModel.Name, bindingModel.Age, bindingModel.Breed, bindingModel.Picture);
+                if (created)
                 {
-                    Name = bindingModel.Name,
-                    Age = bindingModel.Age,
-                    Breed = bindingModel.Breed,
-                    Picture = bindingModel.Picture,
-                };
-                _context.Dogs.Add(dogFromDb);
-                _context.SaveChanges();
-                return this.RedirectToAction("Success");
+                    return this.RedirectToAction("Success");
+                }
             }
             return this.View();
         }
@@ -98,13 +79,9 @@ namespace DogsApp.Controllers
         }
 
         // GET: DogController/Edit/5
-        public ActionResult Edit(int? id)
+        public ActionResult Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            Dog? item = _context.Dogs.Find(id);
+            Dog item = _dogService.GetDogById(id);
             if (item == null)
             {
                 return NotFound();
@@ -127,17 +104,11 @@ namespace DogsApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                Dog dog = new Dog
+                var updated = _dogService.UpdateDog(id, bindingModel.Name, bindingModel.Age, bindingModel.Breed, bindingModel.Picture);
+                if (updated)
                 {
-                    Id = id,
-                    Name = bindingModel.Name,
-                    Age = bindingModel.Age,
-                    Breed = bindingModel.Breed,
-                    Picture = bindingModel.Picture
-                };
-                _context.Dogs.Update(dog);
-                _context.SaveChanges();
-                return this.RedirectToAction("Index");
+                    return this.RedirectToAction("Index");
+                }
             }
             return View(bindingModel);
         }
@@ -145,11 +116,7 @@ namespace DogsApp.Controllers
         // GET: DogController/Delete/5
         public ActionResult Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-            Dog? item = _context.Dogs.Find(id);
+            Dog item = _dogService.GetDogById(id);
             if (item == null) 
             { 
                 return NotFound();
@@ -170,14 +137,15 @@ namespace DogsApp.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, IFormCollection collection)
         {
-            Dog? item = _context.Dogs.Find(id);
-            if (item == null)
+            var deleted = _dogService.RemoveById(id);
+            if (deleted)
             {
-                return NotFound();
+                return this.RedirectToAction("Index", "Dog");
             }
-            _context.Dogs.Remove(item);
-            _context.SaveChanges();
-            return this.RedirectToAction("Index", "Dogs");
+            else
+            {
+                return View();
+            }
         }
     }
 }

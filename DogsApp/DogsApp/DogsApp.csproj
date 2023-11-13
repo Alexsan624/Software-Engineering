@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DogsApp.Core\DogsApp.Core.csproj" />
     <ProjectReference Include="..\DogsApp.Infrastructure\DogsApp.Infrastructure.csproj" />
   </ItemGroup>
 
