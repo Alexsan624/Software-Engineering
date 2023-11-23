@@ -13,5 +13,6 @@ namespace DogsApp.Infrastructure.Data
             Database.EnsureCreated();
         }
         public DbSet<Dog> Dogs { get; set; }
+        public DbSet<Breed> Breeds { get; set; }
     }
 }

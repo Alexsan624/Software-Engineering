@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
+using DogsApp.Models.Breed;
+
 namespace DogsApp.Models
 {
     public class DogEditViewModel
@@ -15,12 +17,12 @@ namespace DogsApp.Models
         [Display(Name = "Age")]
         public int Age { get; set; }
 
-        [Required]
-        [MaxLength(50)]
         [Display(Name = "Breed")]
-        public string Breed { get; set; }
+        public int BreedId { get; set; }
 
         [Display(Name = "Dog Picture")]
         public string? Picture { get; set; }
+
+        public virtual List<BreedPairViewModel> Breeds { get; set; } = new List<BreedPairViewModel>();
     }
 }

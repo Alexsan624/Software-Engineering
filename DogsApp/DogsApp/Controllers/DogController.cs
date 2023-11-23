@@ -2,6 +2,7 @@
 using DogsApp.Infrastructure.Data;
 using DogsApp.Infrastructure.Data.Domain;
 using DogsApp.Models;
+using DogsApp.Models.Breed;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,12 +13,14 @@ namespace DogsApp.Controllers
     public class DogController : Controller
     {
         private readonly IDogService _dogService;
-        public DogController(IDogService dogService)
+        private readonly IBreedService _breedService;
+        public DogController(IDogService dogService, IBreedService breedService)
         {
             this._dogService = dogService;
+            this._breedService = breedService;
         }
         // GET: DogController
-        public ActionResult Index(string searchStringBreed, string searchStringName)
+        public IActionResult Index(string searchStringBreed, string searchStringName)
         {
             List<DogAllViewModel> dogs = _dogService.GetDogs(searchStringBreed, searchStringName)
                 .Select(dogFromDb => new DogAllViewModel
@@ -25,7 +28,7 @@ namespace DogsApp.Controllers
                     Id = dogFromDb.Id,
                     Name = dogFromDb.Name,
                     Age = dogFromDb.Age,
-                    Breed = dogFromDb.Breed,
+                    BreedName = dogFromDb.Breed.Name,
                     Picture = dogFromDb.Picture
                 }).ToList();
 
@@ -33,7 +36,7 @@ namespace DogsApp.Controllers
         }
 
         // GET: DogController/Details/5
-        public ActionResult Details(int id)
+        public IActionResult Details(int id)
         {
             Dog item = _dogService.GetDogById(id);
             if (item == null)
@@ -45,32 +48,38 @@ namespace DogsApp.Controllers
                 Id = item.Id,
                 Name = item.Name,
                 Age = item.Age,
-                Breed = item.Breed,
+                BreedName = item.Breed.Name,
                 Picture = item.Picture
             };
             return View(dog);
         }
 
         // GET: DogController/Create
-        public ActionResult Create()
+        public IActionResult Create()
         {
-            return View();
+            var dog = new DogCreateViewModel();
+            dog.Breeds = _breedService.GetBreeds().Select(c => new Models.Breed.BreedPairViewModel()
+            {
+                Id = c.Id,
+                Name = c.Name,
+            }).ToList();
+            return View(dog);
         }
 
         // POST: DogController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(DogCreateViewModel bindingModel)
+        public IActionResult Create([FromForm] DogCreateViewModel dog)
         {
             if (ModelState.IsValid)
             {
-                var created = _dogService.Create(bindingModel.Name, bindingModel.Age, bindingModel.Breed, bindingModel.Picture);
+                var created = _dogService.Create(dog.Name, dog.Age, dog.BreedId, dog.Picture);
                 if (created)
                 {
-                    return this.RedirectToAction("Success");
+                    return this.RedirectToAction(nameof(Index));
                 }
             }
-            return this.View();
+            return View();
         }
 
         public IActionResult Success()
@@ -79,7 +88,7 @@ namespace DogsApp.Controllers
         }
 
         // GET: DogController/Edit/5
-        public ActionResult Edit(int id)
+        public IActionResult Edit(int id)
         {
             Dog item = _dogService.GetDogById(id);
             if (item == null)
@@ -90,21 +99,26 @@ namespace DogsApp.Controllers
             {
                 Id = item.Id,
                 Name = item.Name,
+                BreedId = item.BreedId,
                 Age = item.Age,
-                Breed = item.Breed,
                 Picture = item.Picture
             };
+            dog.Breeds = _breedService.GetBreeds().Select(c => new BreedPairViewModel()
+            {
+                Id = c.Id,
+                Name = c.Name,
+            }).ToList();
             return View(dog);
         }
 
         // POST: DogController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, DogEditViewModel bindingModel)
+        public IActionResult Edit(int id, DogEditViewModel bindingModel)
         {
             if (ModelState.IsValid)
             {
-                var updated = _dogService.UpdateDog(id, bindingModel.Name, bindingModel.Age, bindingModel.Breed, bindingModel.Picture);
+                var updated = _dogService.UpdateDog(id, bindingModel.Name, bindingModel.Age, bindingModel.BreedId, bindingModel.Picture);
                 if (updated)
                 {
                     return this.RedirectToAction("Index");
@@ -114,7 +128,7 @@ namespace DogsApp.Controllers
         }
 
         // GET: DogController/Delete/5
-        public ActionResult Delete(int id)
+        public IActionResult Delete(int id)
         {
             Dog item = _dogService.GetDogById(id);
             if (item == null) 
@@ -126,7 +140,7 @@ namespace DogsApp.Controllers
                 Id = item.Id,
                 Name = item.Name,
                 Age = item.Age,
-                Breed = item.Breed,
+                BreedName = item.Breed.Name,
                 Picture = item.Picture
             };
             return View(dog);
@@ -135,7 +149,7 @@ namespace DogsApp.Controllers
         // POST: DogController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public IActionResult Delete(int id, IFormCollection collection)
         {
             var deleted = _dogService.RemoveById(id);
             if (deleted)
