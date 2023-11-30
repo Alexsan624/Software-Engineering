@@ -17,5 +17,8 @@ namespace DogsApp.Models
 
         [Display(Name = "Dog Picture")]
         public string? Picture { get; set; }
+
+        [Display(Name = "Full Name")]
+        public string FullName { get; set; } = null!;
     }
 }
